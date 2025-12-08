@@ -5,18 +5,32 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "borrow")
 public class Borrow {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "BorrowID") // ✅ 必须加，否则找不到列
     private Long id;
+
+    @Column(name = "BookID")   // ✅ 对应数据库 BookID
     private String isbn;
+
+    @Column(name = "CardID")   // ✅ 对应数据库 CardID
     private String cardId;
+
+    @Column(name = "BorrowTime")
     private LocalDateTime borrowTime;
+
+    @Column(name = "ReturnTime")
     private LocalDateTime returnTime;
+
+    @Column(name = "DueTime")
     private LocalDateTime dueDate;
+
+    @Column(name = "FineAmount")
     private BigDecimal fineAmount;
 
-    // Getters and Setters
+    // Getters and Setters (保持原样，只需确认 id 的 getter/setter 存在)
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getIsbn() { return isbn; }

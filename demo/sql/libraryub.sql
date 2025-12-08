@@ -17,11 +17,11 @@
 -- 导出  表 libraryub.book 结构
 CREATE TABLE IF NOT EXISTS `book` (
   `BookID` varchar(20) NOT NULL,
-  `Title` varchar(100) NOT NULL,
-  `Author` varchar(50) DEFAULT NULL,
-  `Price` decimal(10,2) NOT NULL DEFAULT '0.00',
-  `Publisher` varchar(100) DEFAULT NULL,
-  `Summary` text,
+  `title` varchar(255) DEFAULT NULL,
+  `author` varchar(255) DEFAULT NULL,
+  `price` decimal(38,2) DEFAULT NULL,
+  `publisher` varchar(255) DEFAULT NULL,
+  `summary` varchar(255) DEFAULT NULL,
   `Status` varchar(10) NOT NULL DEFAULT '在库',
   PRIMARY KEY (`BookID`),
   CONSTRAINT `book_chk_1` CHECK ((`Status` in (_utf8mb4'在库',_utf8mb4'借出',_utf8mb4'遗失')))
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `borrow` (
   KEY `borrow_ibfk_2` (`CardID`),
   CONSTRAINT `borrow_ibfk_1` FOREIGN KEY (`BookID`) REFERENCES `book` (`BookID`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `borrow_ibfk_2` FOREIGN KEY (`CardID`) REFERENCES `reader` (`CardID`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=256 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='借阅记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='借阅记录表';
 
 -- 数据导出被取消选择。
 
@@ -111,28 +111,13 @@ BEGIN
 END//
 DELIMITER ;
 
--- 导出  表 libraryub.borrow_backup 结构
-CREATE TABLE IF NOT EXISTS `borrow_backup` (
-  `BorrowID` int NOT NULL DEFAULT '0',
-  `BookID` varchar(20) NOT NULL,
-  `CardID` varchar(20) NOT NULL,
-  `BorrowTime` datetime DEFAULT CURRENT_TIMESTAMP,
-  `DueTime` datetime NOT NULL,
-  `ReturnTime` datetime DEFAULT NULL,
-  `OverdueDays` int DEFAULT '0',
-  `FineAmount` decimal(10,2) DEFAULT '0.00',
-  `IsPaid` tinyint(1) DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-
--- 数据导出被取消选择。
-
 -- 导出  表 libraryub.department 结构
 CREATE TABLE IF NOT EXISTS `department` (
   `DeptID` int NOT NULL AUTO_INCREMENT,
   `DeptName` varchar(50) NOT NULL,
   PRIMARY KEY (`DeptID`),
   UNIQUE KEY `uk_DeptName` (`DeptName`)
-) ENGINE=InnoDB AUTO_INCREMENT=49 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='单位';
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='单位';
 
 -- 数据导出被取消选择。
 
@@ -149,14 +134,14 @@ CREATE TABLE IF NOT EXISTS `fine` (
   KEY `fine_ibfk_2` (`CardID`),
   CONSTRAINT `fine_ibfk_1` FOREIGN KEY (`BorrowID`) REFERENCES `borrow` (`BorrowID`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fine_ibfk_2` FOREIGN KEY (`CardID`) REFERENCES `reader` (`CardID`) ON DELETE RESTRICT ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=128 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='罚款记录表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='罚款记录表';
 
 -- 数据导出被取消选择。
 
 -- 导出  表 libraryub.reader 结构
 CREATE TABLE IF NOT EXISTS `reader` (
   `CardID` varchar(20) NOT NULL,
-  `Name` varchar(50) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
   `Sex` char(1) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `DeptID` int DEFAULT NULL,
   `Type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '学生',
