@@ -12,10 +12,16 @@ public class Reader {
     @Column(name = "name")
     private String name;
 
-    // ✅ 修改重点 1：添加 Sex 字段映射
-    // ✅ 修改重点 2：直接在 Java 里赋值 "男"，防止 Hibernate 传 null 导致报错
     @Column(name = "Sex")
-    private String sex = "男";
+    private String sex = "男"; // 有默认值
+
+    // ✅ 新增：映射数据库的 DeptID 列
+    @Column(name = "DeptID")
+    private Integer deptId;
+
+    // ✅ 新增：映射数据库的 Type 列
+    @Column(name = "Type")
+    private String type = "学生"; // 给一个默认值
 
     @Column(name = "Level")
     private String level;
@@ -30,9 +36,16 @@ public class Reader {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    // ✅ 记得添加 Sex 的 Getter/Setter
     public String getSex() { return sex; }
     public void setSex(String sex) { this.sex = sex; }
+
+    // ✅ 新增 Getter/Setter
+    public Integer getDeptId() { return deptId; }
+    public void setDeptId(Integer deptId) { this.deptId = deptId; }
+
+    // ✅ 新增 Getter/Setter
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
     public String getLevel() { return level; }
     public void setLevel(String level) { this.level = level; }

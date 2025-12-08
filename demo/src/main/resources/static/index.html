@@ -8,39 +8,21 @@
         h1 { text-align: center; color: #333; }
         h2 { margin-top: 0; font-size: 18px; color: #555; }
 
-        /* 模块容器样式 */
         .section {
-            background: white;
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            background: white; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
+        .form-group { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
+        label { font-weight: bold; width: 70px; text-align: right; }
+        input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
+        textarea { width: 535px; height: 60px; resize: vertical; }
 
-        /* 输入框和标签样式 */
-        .form-group { margin-bottom: 10px; }
-        label { display: inline-block; width: 100px; font-weight: bold; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
-
-        /* 按钮样式 */
-        button {
-            padding: 8px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
+        button { padding: 8px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
         button:hover { background-color: #0056b3; }
 
-        /* 结果提示信息样式 */
         .result-msg { margin-left: 10px; font-weight: bold; }
         .success { color: green; }
         .error { color: red; }
 
-        /* 表格样式 */
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #f8f9fa; font-weight: bold; }
@@ -54,12 +36,18 @@
 <div class="section" style="border-left: 5px solid #28a745;">
     <h2>📖 图书登记 (入库)</h2>
     <div class="form-group">
-        <label>书号:</label> <input type="text" id="addBookIsbn" placeholder="例如: 978-001">
-        <label>书名:</label> <input type="text" id="addBookTitle" placeholder="例如: 数据库原理">
+        <div><label>书号:</label> <input type="text" id="addBookIsbn" placeholder="例如: 978-001"></div>
+        <div><label>书名:</label> <input type="text" id="addBookTitle" placeholder="例如: 数据库原理"></div>
     </div>
     <div class="form-group">
-        <label>作者:</label> <input type="text" id="addBookAuthor" placeholder="例如: 王珊">
-        <label>价格:</label> <input type="number" id="addBookPrice" placeholder="例如: 50.00">
+        <div><label>作者:</label> <input type="text" id="addBookAuthor" placeholder="例如: 王珊"></div>
+        <div><label>价格:</label> <input type="number" id="addBookPrice" placeholder="例如: 50.00"></div>
+    </div>
+    <div class="form-group">
+        <div><label>出版社:</label> <input type="text" id="addBookPublisher" placeholder="例如: 高等教育出版社"></div>
+    </div>
+    <div class="form-group">
+        <div><label>摘要:</label> <textarea id="addBookSummary" placeholder="请输入图书摘要..."></textarea></div>
     </div>
     <button onclick="addBook()">➕ 添加图书</button>
     <span id="addBookResult" class="result-msg"></span>
@@ -68,11 +56,31 @@
 <div class="section" style="border-left: 5px solid #17a2b8;">
     <h2>👤 读者登记 (办证)</h2>
     <div class="form-group">
-        <label>读者卡号:</label> <input type="text" id="addReaderId" placeholder="例如: 2024001">
-        <label>姓名:</label> <input type="text" id="addReaderName" placeholder="例如: 李四">
+        <div><label>卡号:</label> <input type="text" id="addReaderId" placeholder="例如: 2024001"></div>
+        <div><label>姓名:</label> <input type="text" id="addReaderName" placeholder="例如: 李四"></div>
     </div>
     <div class="form-group">
-        <label>级别(1-3):</label> <input type="number" id="addReaderLevel" value="1" placeholder="级别">
+        <div>
+            <label>性别:</label>
+            <select id="addReaderSex">
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select>
+        </div>
+        <div>
+            <label>单位ID:</label>
+            <input type="number" id="addReaderDeptId" placeholder="1=计算机, 2=外语">
+        </div>
+    </div>
+    <div class="form-group">
+        <div>
+            <label>类型:</label>
+            <select id="addReaderType">
+                <option value="学生">学生</option>
+                <option value="教师">教师</option>
+            </select>
+        </div>
+        <div><label>级别:</label> <input type="text" id="addReaderLevel" value="本科生" placeholder="例如: 本科生/研究生"></div>
     </div>
     <button onclick="addReader()">👤 注册读者</button>
     <span id="addReaderResult" class="result-msg"></span>
@@ -81,8 +89,8 @@
 <div class="section" style="border-left: 5px solid #ffc107;">
     <h2>📤 借书办理</h2>
     <div class="form-group">
-        <label>借书证号:</label> <input type="text" id="borrowCardId" placeholder="输入读者卡号">
-        <label>图书书号:</label> <input type="text" id="borrowIsbn" placeholder="输入图书书号">
+        <div><label>借书证:</label> <input type="text" id="borrowCardId" placeholder="输入读者卡号"></div>
+        <div><label>图书书号:</label> <input type="text" id="borrowIsbn" placeholder="输入图书书号"></div>
         <button onclick="borrowBook()" style="margin-left: 10px;">确认借阅</button>
     </div>
     <span id="borrowResult" class="result-msg"></span>
@@ -91,7 +99,7 @@
 <div class="section" style="border-left: 5px solid #dc3545;">
     <h2>📥 还书办理</h2>
     <div class="form-group">
-        <label>图书书号:</label> <input type="text" id="returnIsbn" placeholder="输入图书书号">
+        <div><label>图书书号:</label> <input type="text" id="returnIsbn" placeholder="输入图书书号"></div>
         <button onclick="returnBook()" style="margin-left: 10px;">确认归还</button>
     </div>
     <span id="returnResult" class="result-msg"></span>
@@ -108,6 +116,7 @@
             <th>书号</th>
             <th>书名</th>
             <th>作者</th>
+            <th>出版社</th>
             <th>价格</th>
             <th>状态</th>
         </tr>
@@ -124,15 +133,16 @@
         resultSpan.innerText = "正在提交...";
 
         const book = {
-            // 注意：这里的属性名 isbn 必须保持不变，对应后端的 Java 类字段
             isbn: document.getElementById('addBookIsbn').value,
             title: document.getElementById('addBookTitle').value,
             author: document.getElementById('addBookAuthor').value,
             price: parseFloat(document.getElementById('addBookPrice').value),
-            status: "在库" // 保持之前修复的中文状态
+            // ✅ 新增字段
+            publisher: document.getElementById('addBookPublisher').value,
+            summary: document.getElementById('addBookSummary').value,
+            status: "在库"
         };
 
-        // 简单校验
         if(!book.isbn || !book.title) {
             resultSpan.innerText = "❌ 请填写完整的图书信息";
             resultSpan.className = "result-msg error";
@@ -149,8 +159,7 @@
             if(response.ok) {
                 resultSpan.innerText = "✅ 图书入库成功！";
                 resultSpan.className = "result-msg success";
-                loadBooks(); // 成功后刷新列表
-                // 清空输入框以便下次输入
+                loadBooks();
                 document.getElementById('addBookIsbn').value = '';
                 document.getElementById('addBookTitle').value = '';
             } else {
@@ -158,7 +167,7 @@
                 resultSpan.className = "result-msg error";
             }
         } catch (e) {
-            resultSpan.innerText = "❌ 网络错误或服务器异常";
+            resultSpan.innerText = "❌ 网络错误";
             resultSpan.className = "result-msg error";
         }
     }
@@ -171,12 +180,16 @@
         const reader = {
             cardId: document.getElementById('addReaderId').value,
             name: document.getElementById('addReaderName').value,
-            level: parseInt(document.getElementById('addReaderLevel').value),
+            // ✅ 新增字段
+            sex: document.getElementById('addReaderSex').value,
+            deptId: parseInt(document.getElementById('addReaderDeptId').value) || null, // 单位ID
+            type: document.getElementById('addReaderType').value,
+            level: document.getElementById('addReaderLevel').value,
             isActive: true
         };
 
-        if(!reader.cardId || !reader.name) {
-            resultSpan.innerText = "❌ 请填写完整的读者信息";
+        if(!reader.cardId || !reader.name || !reader.deptId) {
+            resultSpan.innerText = "❌ 请填写完整的读者信息 (含单位ID)";
             resultSpan.className = "result-msg error";
             return;
         }
@@ -192,9 +205,8 @@
                 resultSpan.innerText = "✅ 读者注册成功！";
                 resultSpan.className = "result-msg success";
                 document.getElementById('addReaderId').value = '';
-                document.getElementById('addReaderName').value = '';
             } else {
-                resultSpan.innerText = "❌ 注册失败，卡号可能已存在";
+                resultSpan.innerText = "❌ 注册失败 (请确认ID不重复且单位ID存在)";
                 resultSpan.className = "result-msg error";
             }
         } catch (e) {
@@ -223,7 +235,6 @@
             });
             const text = await response.text();
             resultSpan.innerText = text;
-
             if(text.includes("成功")) {
                 resultSpan.className = "result-msg success";
                 loadBooks();
@@ -254,7 +265,6 @@
             });
             const text = await response.text();
             resultSpan.innerText = text;
-
             if(text.includes("成功")) {
                 resultSpan.className = "result-msg success";
                 loadBooks();
@@ -266,7 +276,7 @@
         }
     }
 
-    // --- 5. 加载图书列表功能 ---
+    // --- 5. 加载图书列表 ---
     async function loadBooks() {
         try {
             const response = await fetch('/api/books');
@@ -276,7 +286,6 @@
 
             books.forEach(book => {
                 const tr = document.createElement('tr');
-                // 保持中文状态逻辑
                 const statusText = book.status;
                 const statusColor = book.status === '在库' ? '#28a745' : '#dc3545';
 
@@ -284,6 +293,7 @@
                         <td>${book.isbn}</td>
                         <td>${book.title}</td>
                         <td>${book.author || '-'}</td>
+                        <td>${book.publisher || '-'}</td>
                         <td>${book.price || '-'}</td>
                         <td style="color: ${statusColor}; font-weight: bold;">
                             ${statusText}
@@ -296,7 +306,6 @@
         }
     }
 
-    // 页面打开时自动加载一次列表
     loadBooks();
 </script>
 </body>
