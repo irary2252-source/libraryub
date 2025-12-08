@@ -34,6 +34,8 @@ public class LibraryController {
     // 3. 添加读者 (读者登记)
     @PostMapping("/reader")
     public Reader addReader(@RequestBody Reader reader) {
+        // ✅ 现在的代码非常干净，直接保存即可
+        // 如果前端没传性别，Reader 实体类里默认就是 "男"
         return readerRepo.save(reader);
     }
 
