@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>读者系统 - 图书馆</title>
+    <style>
+        body { font-family: "Microsoft YaHei", sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; background-color: #f4f4f9; }
+        h1 { text-align: center; color: #28a745; }
+        .section { background: white; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; }
+        .form-group { margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        label { font-weight: bold; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
+        button { padding: 8px 20px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        /* 搜索框样式优化 */
+        .search-box { display: flex; gap: 10px; margin-bottom: 10px; }
+        .search-box input { width: 300px; border: 2px solid #28a745; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; }
+        .result-msg { font-weight: bold; margin-left: 10px; }
+    </style>
+</head>
+<body>
+
+<script>
+    if (localStorage.getItem('role') !== 'reader') {
+        alert("⛔ 请先登录读者账号！");
+        window.location.href = 'login.html';
+    }
+    const currentCardId = localStorage.getItem('cardId');
+
+    function logout() {
+        if(confirm("确定要退出吗？")) {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    }
+</script>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <span style="font-weight: bold; color: #555;">我的卡号: <span id="displayCardId" style="color:#28a745;"></span></span>
+    <button onclick="logout()" style="background-color: #6c757d;">🚪 退出登录</button>
+</div>
+
+<h1>📖 读者自助系统</h1>
+
+<div class="section" style="border-left: 5px solid #28a745;">
+    <h2>📤 自助借书</h2>
+    <div class="form-group">
+        <label>借书证号:</label>
+        <input type="text" id="borrowCardId" readonly style="background-color: #eee; color: #555; cursor: not-allowed;">
+
+        <label>图书书号:</label>
+        <input type="text" id="borrowIsbn" placeholder="书本背面的ISBN">
+
+        <button onclick="borrowBook()">确认借阅</button>
+    </div>
+    <span id="borrowResult" class="result-msg"></span>
+</div>
+
+<div class="section">
+    <h2>🔍 馆藏图书查询</h2>
+
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="输入书名进行搜索 (例如: 数据库)">
+        <button onclick="searchBooks()">🔍 搜索</button>
+        <button onclick="loadBooks()" style="background-color: #6c757d;">🔄 显示全部</button>
+    </div>
+
+    <table id="bookTable">
+        <thead>
+        <tr><th>书号</th><th>书名</th><th>作者</th><th>出版社</th><th>价格</th><th>状态</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    // 自动填充卡号
+    document.getElementById('borrowCardId').value = currentCardId;
+    document.getElementById('displayCardId').innerText = currentCardId;
+
+    // 借书逻辑
+    async function borrowBook() {
+        const cardId = document.getElementById('borrowCardId').value;
+        const isbn = document.getElementById('borrowIsbn').value;
+        const span = document.getElementById('borrowResult');
+
+        if(!isbn) {
+            span.innerText = "❌ 请输入图书书号"; span.style.color = "red"; return;
+        }
+
+        span.innerText = "处理中..."; span.style.color = "black";
+        try {
+            const response = await fetch('/api/borrow', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cardId, isbn })
+            });
+            const text = await response.text();
+            span.innerText = text;
+            span.style.color = text.includes("成功") ? "green" : "red";
+            if(text.includes("成功")) loadBooks(); // 借书成功后刷新列表
+        } catch (e) { span.innerText = "❌ 网络错误"; span.style.color = "red"; }
+    }
+
+    // ✅ 新增：搜索图书逻辑
+    async function searchBooks() {
+        const keyword = document.getElementById('searchInput').value;
+        if (!keyword) {
+            loadBooks(); // 如果关键字为空，加载所有
+            return;
+        }
+        try {
+            // 调用新接口
+            const response = await fetch('/api/books/search?keyword=' + encodeURIComponent(keyword));
+            const books = await response.json();
+            renderTable(books);
+        } catch (e) { alert("搜索出错"); }
+    }
+
+    // 加载全部图书
+    async function loadBooks() {
+        // 清空搜索框
+        document.getElementById('searchInput').value = '';
+        try {
+            const response = await fetch('/api/books');
+            const books = await response.json();
+            renderTable(books);
+        } catch (e) {}
+    }
+
+    // 渲染表格 (复用)
+    function renderTable(books) {
+        const tbody = document.querySelector('#bookTable tbody');
+        tbody.innerHTML = '';
+        if (books.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#999;">暂无相关图书</td></tr>';
+            return;
+        }
+        books.forEach(book => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${book.isbn}</td><td>${book.title}</td><td>${book.author||'-'}</td><td>${book.publisher||'-'}</td><td>${book.price||'-'}</td>
+                            <td style="font-weight:bold; color:${book.status==='在库'?'#28a745':'#dc3545'}">${book.status}</td>`;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 初始加载
+    loadBooks();
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <title>系统登录 - 图书管理系统</title>
+  <style>
+    body { font-family: "Microsoft YaHei", sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #74ebd5 0%, #ACB6E5 100%); margin: 0; }
+    .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.15); width: 350px; text-align: center; }
+    h1 { margin-bottom: 20px; color: #333; }
+    .tabs { display: flex; margin-bottom: 20px; border-bottom: 2px solid #eee; }
+    .tab { flex: 1; padding: 10px; cursor: pointer; color: #666; font-weight: bold; }
+    .tab.active { color: #007bff; border-bottom: 3px solid #007bff; }
+    .form-group { margin-bottom: 15px; text-align: left; }
+    label { display: block; margin-bottom: 5px; color: #555; }
+    input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+    button:hover { background-color: #0056b3; }
+    .error-msg { color: red; font-size: 14px; margin-top: 10px; display: none; }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+  <h1>📚 图书管理系统</h1>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('admin')">👨‍💼 管理员登录</div>
+    <div class="tab" onclick="switchTab('reader')">📖 读者登录</div>
+  </div>
+
+  <div id="adminForm">
+    <div class="form-group">
+      <label>账号</label>
+      <input type="text" id="adminUser" placeholder="请输入管理员账号 (admin)">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input type="password" id="adminPass" placeholder="请输入密码">
+    </div>
+    <button onclick="doLoginAdmin()">登录系统</button>
+  </div>
+
+  <div id="readerForm" style="display: none;">
+    <div class="form-group">
+      <label>借书证号</label>
+      <input type="text" id="readerCard" placeholder="请输入您的卡号">
+    </div>
+    <div class="form-group">
+      <label>密码</label>
+      <input type="password" id="readerPass" placeholder="请输入密码 (默认123456)">
+    </div>
+    <button onclick="doLoginReader()" style="background-color: #28a745;">读者登录</button>
+  </div>
+
+  <div id="errorMsg" class="error-msg"></div>
+</div>
+
+<script>
+  function switchTab(type) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('errorMsg').style.display = 'none';
+
+    if (type === 'admin') {
+      document.getElementById('adminForm').style.display = 'block';
+      document.getElementById('readerForm').style.display = 'none';
+    } else {
+      document.getElementById('adminForm').style.display = 'none';
+      document.getElementById('readerForm').style.display = 'block';
+    }
+  }
+
+  async function doLoginAdmin() {
+    const username = document.getElementById('adminUser').value;
+    const password = document.getElementById('adminPass').value;
+    if(!username || !password) return showErr("请输入完整信息");
+
+    try {
+      const res = await fetch('/api/login/admin', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if(data.success) {
+        localStorage.setItem('role', 'admin'); // 记录登录状态
+        window.location.href = 'admin.html';   // 跳转到管理页
+      } else {
+        showErr(data.msg);
+      }
+    } catch(e) { showErr("网络错误"); }
+  }
+
+  async function doLoginReader() {
+    const cardId = document.getElementById('readerCard').value;
+    const password = document.getElementById('readerPass').value;
+    if(!cardId || !password) return showErr("请输入完整信息");
+
+    try {
+      const res = await fetch('/api/login/reader', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ cardId, password })
+      });
+      const data = await res.json();
+      if(data.success) {
+        localStorage.setItem('role', 'reader'); // 记录登录状态
+        localStorage.setItem('cardId', cardId); // 记录当前卡号
+        window.location.href = 'reader.html';   // 跳转到读者页
+      } else {
+        showErr(data.msg);
+      }
+    } catch(e) { showErr("网络错误"); }
+  }
+
+  function showErr(msg) {
+    const div = document.getElementById('errorMsg');
+    div.innerText = msg;
+    div.style.display = 'block';
+  }
+</script>
+</body>
+</html>

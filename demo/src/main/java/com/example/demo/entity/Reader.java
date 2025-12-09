@@ -24,7 +24,8 @@ public class Reader {
     @Column(name = "Level")
     private String level;
 
-    // --- ✅ 新增字段开始 ---
+    @Column(name = "Password")
+    private String password = "123456"; // 默认密码
 
     @Column(name = "MaxBorrow")
     private Integer maxBorrow = 5; // 默认最大借5本
@@ -72,4 +73,8 @@ public class Reader {
 
     public Boolean getActive() { return isActive; }
     public void setActive(Boolean active) { isActive = active; }
+
+    // ✅ 新增：密码的 Getter/Setter
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }

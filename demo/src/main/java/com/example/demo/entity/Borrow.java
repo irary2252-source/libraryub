@@ -30,6 +30,12 @@ public class Borrow {
     @Column(name = "FineAmount")
     private BigDecimal fineAmount;
 
+    @Column(name = "OverdueDays")
+    private Integer overdueDays = 0;
+
+    @Column(name = "IsPaid")
+    private Boolean isPaid = false; // 0=未付, 1=已付
+
     // Getters and Setters (保持原样，只需确认 id 的 getter/setter 存在)
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -45,4 +51,8 @@ public class Borrow {
     public void setDueDate(LocalDateTime dueDate) { this.dueDate = dueDate; }
     public BigDecimal getFineAmount() { return fineAmount; }
     public void setFineAmount(BigDecimal fineAmount) { this.fineAmount = fineAmount; }
+    public Integer getOverdueDays() { return overdueDays; }
+    public void setOverdueDays(Integer overdueDays) { this.overdueDays = overdueDays; }
+    public Boolean getIsPaid() { return isPaid; }
+    public void setIsPaid(Boolean isPaid) { this.isPaid = isPaid; }
 }
