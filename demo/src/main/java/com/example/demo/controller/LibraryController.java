@@ -19,26 +19,28 @@ public class LibraryController {
     @Autowired private BookRepository bookRepo;
 
     // =====================================================================
-    //  ✅ 1. 登录认证接口
+    //  ✅ 1. 统一登录认证接口 (新增/替换)
     // =====================================================================
 
-    @PostMapping("/login/admin")
-    public Map<String, Object> loginAdmin(@RequestBody Map<String, String> payload) {
-        boolean success = libraryService.loginAdmin(payload.get("username"), payload.get("password"));
-        if (success) {
-            return Map.of("success", true, "msg", "登录成功");
+    @PostMapping("/login/unified")
+    public Map<String, Object> unifiedLogin(@RequestBody Map<String, String> payload) {
+        String identifier = payload.get("identifier");
+        String password = payload.get("password");
+
+        Map<String, String> result = libraryService.unifiedLogin(identifier, password);
+        String role = result.get("role");
+        String id = result.get("id");
+
+        if ("admin".equals(role)) {
+            return Map.of("success", true, "role", "admin", "id", id);
+        } else if ("reader".equals(role)) {
+            return Map.of("success", true, "role", "reader", "id", id);
+        } else {
+            return Map.of("success", false, "msg", "账号或密码错误");
         }
-        return Map.of("success", false, "msg", "用户名或密码错误");
     }
 
-    @PostMapping("/login/reader")
-    public Map<String, Object> loginReader(@RequestBody Map<String, String> payload) {
-        boolean success = libraryService.loginReader(payload.get("cardId"), payload.get("password"));
-        if (success) {
-            return Map.of("success", true, "msg", "登录成功");
-        }
-        return Map.of("success", false, "msg", "卡号或密码错误");
-    }
+    // ⚠️ 原有的 /api/login/admin 和 /api/login/reader 已被移除
 
     // =====================================================================
     //  ✅ 2. 个人中心 (修改密码)
@@ -83,14 +85,13 @@ public class LibraryController {
 
     @GetMapping("/books/search")
     public List<Book> searchBooks(@RequestParam String keyword) {
-        // 调用 Repository 中升级后的模糊搜索 (支持书名、作者、分类、ISBN)
         return bookRepo.searchByTitle(keyword);
     }
 
     @PostMapping("/book")
     public Book addBook(@RequestBody Book book) {
         if (book.getStatus() == null) book.setStatus("在库");
-        if (book.getCategory() == null) book.setCategory("其他"); // 防止分类为空
+        if (book.getCategory() == null) book.setCategory("其他");
         return bookRepo.save(book);
     }
 
@@ -135,11 +136,9 @@ public class LibraryController {
 
     @PostMapping("/borrow")
     public String borrow(@RequestBody Map<String, String> request) {
-        // 借书逻辑是通用的
         return libraryService.borrowBook(request.get("cardId"), request.get("isbn"));
     }
 
-    // 管理员还书 (按 ISBN)
     @PostMapping("/return")
     public String returnBook(@RequestBody Map<String, String> request) {
         return libraryService.returnBook(request.get("isbn"));
@@ -169,7 +168,6 @@ public class LibraryController {
         return libraryService.getReaderFines(cardId);
     }
 
-    // 读者还书 (按 BorrowID)
     @PostMapping("/reader/return")
     public Map<String, Object> readerReturn(@RequestBody Map<String, Long> payload) {
         try {
@@ -204,7 +202,6 @@ public class LibraryController {
     public Map<String, Object> addRecommend(@RequestBody PurchaseRequest req) {
         try {
             String msg = libraryService.addRecommendation(req);
-            // 只要消息里包含"成功"，就认为是操作成功
             boolean isSuccess = msg.contains("成功");
             return Map.of("success", isSuccess, "msg", msg);
         } catch (Exception e) {
