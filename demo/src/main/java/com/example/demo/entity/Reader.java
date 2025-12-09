@@ -13,18 +13,29 @@ public class Reader {
     private String name;
 
     @Column(name = "Sex")
-    private String sex = "男"; // 有默认值
+    private String sex = "男";
 
-    // ✅ 新增：映射数据库的 DeptID 列
     @Column(name = "DeptID")
     private Integer deptId;
 
-    // ✅ 新增：映射数据库的 Type 列
     @Column(name = "Type")
-    private String type = "学生"; // 给一个默认值
+    private String type = "学生";
 
     @Column(name = "Level")
     private String level;
+
+    // --- ✅ 新增字段开始 ---
+
+    @Column(name = "MaxBorrow")
+    private Integer maxBorrow = 5; // 默认最大借5本
+
+    @Column(name = "BorrowDays")
+    private Integer borrowDays = 30; // 默认借30天
+
+    @Column(name = "CurrentBorrow")
+    private Integer currentBorrow = 0; // 当前已借数量
+
+    // --- ✅ 新增字段结束 ---
 
     @Column(name = "IsActive")
     private Boolean isActive = true;
@@ -39,16 +50,25 @@ public class Reader {
     public String getSex() { return sex; }
     public void setSex(String sex) { this.sex = sex; }
 
-    // ✅ 新增 Getter/Setter
     public Integer getDeptId() { return deptId; }
     public void setDeptId(Integer deptId) { this.deptId = deptId; }
 
-    // ✅ 新增 Getter/Setter
     public String getType() { return type; }
     public void setType(String type) { this.type = type; }
 
     public String getLevel() { return level; }
     public void setLevel(String level) { this.level = level; }
+
+    // --- ✅ 新增 Getter/Setter ---
+    public Integer getMaxBorrow() { return maxBorrow; }
+    public void setMaxBorrow(Integer maxBorrow) { this.maxBorrow = maxBorrow; }
+
+    public Integer getBorrowDays() { return borrowDays; }
+    public void setBorrowDays(Integer borrowDays) { this.borrowDays = borrowDays; }
+
+    public Integer getCurrentBorrow() { return currentBorrow; }
+    public void setCurrentBorrow(Integer currentBorrow) { this.currentBorrow = currentBorrow; }
+    // ---------------------------
 
     public Boolean getActive() { return isActive; }
     public void setActive(Boolean active) { isActive = active; }

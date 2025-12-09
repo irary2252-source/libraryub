@@ -7,22 +7,16 @@
         body { font-family: "Microsoft YaHei", sans-serif; max-width: 900px; margin: 20px auto; padding: 20px; background-color: #f4f4f9; }
         h1 { text-align: center; color: #333; }
         h2 { margin-top: 0; font-size: 18px; color: #555; }
-
-        .section {
-            background: white; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
+        .section { background: white; border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .form-group { margin-bottom: 15px; display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
         label { font-weight: bold; width: 70px; text-align: right; }
         input, select, textarea { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 200px; }
         textarea { width: 535px; height: 60px; resize: vertical; }
-
         button { padding: 8px 20px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
         button:hover { background-color: #0056b3; }
-
         .result-msg { margin-left: 10px; font-weight: bold; }
         .success { color: green; }
         .error { color: red; }
-
         table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
         th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
         th { background-color: #f8f9fa; font-weight: bold; }
@@ -68,19 +62,23 @@
             </select>
         </div>
         <div>
-            <label>单位ID:</label>
-            <input type="number" id="addReaderDeptId" placeholder="1=计算机, 2=外语">
+            <label>单位:</label>
+            <input type="text" id="addReaderDeptId" placeholder="输入ID(如1) 或 名称(如计算机学院)">
         </div>
     </div>
     <div class="form-group">
         <div>
             <label>类型:</label>
-            <select id="addReaderType">
+            <select id="addReaderType" onchange="updateLevelOptions()">
                 <option value="学生">学生</option>
                 <option value="教师">教师</option>
             </select>
         </div>
-        <div><label>级别:</label> <input type="text" id="addReaderLevel" value="本科生" placeholder="例如: 本科生/研究生"></div>
+        <div>
+            <label>级别:</label>
+            <select id="addReaderLevel">
+            </select>
+        </div>
     </div>
     <button onclick="addReader()">👤 注册读者</button>
     <span id="addReaderResult" class="result-msg"></span>
@@ -112,67 +110,71 @@
     </div>
     <table id="bookTable">
         <thead>
-        <tr>
-            <th>书号</th>
-            <th>书名</th>
-            <th>作者</th>
-            <th>出版社</th>
-            <th>价格</th>
-            <th>状态</th>
-        </tr>
+        <tr><th>书号</th><th>书名</th><th>作者</th><th>出版社</th><th>价格</th><th>状态</th></tr>
         </thead>
-        <tbody>
-        </tbody>
+        <tbody></tbody>
     </table>
 </div>
 
 <script>
-    // --- 1. 添加图书功能 ---
+    // --- ✅ 新增：动态更新级别下拉框的逻辑 ---
+    function updateLevelOptions() {
+        const typeSelect = document.getElementById('addReaderType');
+        const levelSelect = document.getElementById('addReaderLevel');
+        const type = typeSelect.value;
+
+        // 清空现有选项
+        levelSelect.innerHTML = '';
+
+        let options = [];
+        if (type === '学生') {
+            options = ['本科生', '研究生'];
+        } else if (type === '教师') {
+            options = ['副教授', '正教授'];
+        }
+
+        // 生成新选项
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.innerText = opt;
+            levelSelect.appendChild(option);
+        });
+    }
+
+    // 页面加载时初始化一次
+    updateLevelOptions();
+
+    // --- 1. 添加图书 ---
     async function addBook() {
         const resultSpan = document.getElementById('addBookResult');
         resultSpan.innerText = "正在提交...";
-
         const book = {
             isbn: document.getElementById('addBookIsbn').value,
             title: document.getElementById('addBookTitle').value,
             author: document.getElementById('addBookAuthor').value,
             price: parseFloat(document.getElementById('addBookPrice').value),
-            // ✅ 新增字段
             publisher: document.getElementById('addBookPublisher').value,
             summary: document.getElementById('addBookSummary').value,
             status: "在库"
         };
-
         if(!book.isbn || !book.title) {
-            resultSpan.innerText = "❌ 请填写完整的图书信息";
-            resultSpan.className = "result-msg error";
-            return;
+            resultSpan.innerText = "❌ 请填写完整信息"; resultSpan.className = "result-msg error"; return;
         }
-
         try {
             const response = await fetch('/api/book', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(book)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(book)
             });
-
             if(response.ok) {
-                resultSpan.innerText = "✅ 图书入库成功！";
-                resultSpan.className = "result-msg success";
+                resultSpan.innerText = "✅ 图书入库成功！"; resultSpan.className = "result-msg success";
                 loadBooks();
-                document.getElementById('addBookIsbn').value = '';
-                document.getElementById('addBookTitle').value = '';
             } else {
-                resultSpan.innerText = "❌ 添加失败，可能是书号重复";
-                resultSpan.className = "result-msg error";
+                resultSpan.innerText = "❌ 添加失败"; resultSpan.className = "result-msg error";
             }
-        } catch (e) {
-            resultSpan.innerText = "❌ 网络错误";
-            resultSpan.className = "result-msg error";
-        }
+        } catch (e) { resultSpan.innerText = "❌ 网络错误"; resultSpan.className = "result-msg error"; }
     }
 
-    // --- 2. 添加读者功能 ---
+    // --- 2. 添加读者 ---
     async function addReader() {
         const resultSpan = document.getElementById('addReaderResult');
         resultSpan.innerText = "正在提交...";
@@ -180,132 +182,112 @@
         const reader = {
             cardId: document.getElementById('addReaderId').value,
             name: document.getElementById('addReaderName').value,
-            // ✅ 新增字段
             sex: document.getElementById('addReaderSex').value,
-            deptId: parseInt(document.getElementById('addReaderDeptId').value) || null, // 单位ID
+            deptId: document.getElementById('addReaderDeptId').value,
             type: document.getElementById('addReaderType').value,
-            level: document.getElementById('addReaderLevel').value,
+            level: document.getElementById('addReaderLevel').value, // 现在取到的是下拉框的值
             isActive: true
         };
 
         if(!reader.cardId || !reader.name || !reader.deptId) {
-            resultSpan.innerText = "❌ 请填写完整的读者信息 (含单位ID)";
+            resultSpan.innerText = "❌ 请填写完整信息 (含单位)";
             resultSpan.className = "result-msg error";
             return;
         }
 
         try {
             const response = await fetch('/api/reader', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(reader)
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reader)
             });
 
-            if(response.ok) {
+            const data = await response.json();
+
+            if (data.error) {
+                resultSpan.innerText = "❌ " + data.error;
+                resultSpan.className = "result-msg error";
+            } else {
                 resultSpan.innerText = "✅ 读者注册成功！";
                 resultSpan.className = "result-msg success";
                 document.getElementById('addReaderId').value = '';
-            } else {
-                resultSpan.innerText = "❌ 注册失败 (请确认ID不重复且单位ID存在)";
-                resultSpan.className = "result-msg error";
             }
         } catch (e) {
-            resultSpan.innerText = "❌ 网络错误";
+            resultSpan.innerText = "❌ 网络错误或服务器异常";
             resultSpan.className = "result-msg error";
         }
     }
 
-    // --- 3. 借书功能 ---
+    // --- 3. 借书 ---
     async function borrowBook() {
         const cardId = document.getElementById('borrowCardId').value;
         const isbn = document.getElementById('borrowIsbn').value;
         const resultSpan = document.getElementById('borrowResult');
-
-        if(!cardId || !isbn) {
-            resultSpan.innerText = "⚠️ 请输入完整的卡号和书号";
-            resultSpan.className = "result-msg error";
-            return;
-        }
-
+        if(!cardId || !isbn) { resultSpan.innerText = "⚠️ 请输入完整信息"; resultSpan.className = "result-msg error"; return; }
         try {
             const response = await fetch('/api/borrow', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cardId, isbn })
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cardId, isbn })
             });
             const text = await response.text();
             resultSpan.innerText = text;
-            if(text.includes("成功")) {
-                resultSpan.className = "result-msg success";
-                loadBooks();
-            } else {
-                resultSpan.className = "result-msg error";
-            }
-        } catch (e) {
-            resultSpan.innerText = "❌ 网络错误";
-        }
+            resultSpan.className = text.includes("成功") ? "result-msg success" : "result-msg error";
+            if(text.includes("成功")) loadBooks();
+        } catch (e) { resultSpan.innerText = "❌ 网络错误"; }
     }
 
-    // --- 4. 还书功能 ---
+    // --- 4. 还书 ---
     async function returnBook() {
         const isbn = document.getElementById('returnIsbn').value;
         const resultSpan = document.getElementById('returnResult');
-
-        if(!isbn) {
-            resultSpan.innerText = "⚠️ 请输入书号";
-            resultSpan.className = "result-msg error";
-            return;
-        }
-
+        if(!isbn) { resultSpan.innerText = "⚠️ 请输入书号"; resultSpan.className = "result-msg error"; return; }
         try {
             const response = await fetch('/api/return', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ isbn })
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ isbn })
             });
             const text = await response.text();
             resultSpan.innerText = text;
-            if(text.includes("成功")) {
-                resultSpan.className = "result-msg success";
-                loadBooks();
-            } else {
-                resultSpan.className = "result-msg error";
-            }
-        } catch (e) {
-            resultSpan.innerText = "❌ 网络错误";
-        }
+            resultSpan.className = text.includes("成功") ? "result-msg success" : "result-msg error";
+            if(text.includes("成功")) loadBooks();
+        } catch (e) { resultSpan.innerText = "❌ 网络错误"; }
     }
 
-    // --- 5. 加载图书列表 ---
+    function updateLevelOptions() {
+        const typeSelect = document.getElementById('addReaderType');
+        const levelSelect = document.getElementById('addReaderLevel');
+        const type = typeSelect.value;
+
+        // 清空现有选项
+        levelSelect.innerHTML = '';
+
+        let options = [];
+        if (type === '学生') {
+            // ✅ 修改：在这里增加了 '博士生'
+            options = ['本科生', '研究生', '博士生'];
+        } else if (type === '教师') {
+            options = ['副教授', '正教授', '讲师']; // 也可以顺手补个讲师
+        }
+
+        // 生成新选项
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.innerText = opt;
+            levelSelect.appendChild(option);
+        });
+    }
+
+    // --- 5. 加载列表 ---
     async function loadBooks() {
         try {
             const response = await fetch('/api/books');
             const books = await response.json();
             const tbody = document.querySelector('#bookTable tbody');
             tbody.innerHTML = '';
-
             books.forEach(book => {
                 const tr = document.createElement('tr');
-                const statusText = book.status;
-                const statusColor = book.status === '在库' ? '#28a745' : '#dc3545';
-
-                tr.innerHTML = `
-                        <td>${book.isbn}</td>
-                        <td>${book.title}</td>
-                        <td>${book.author || '-'}</td>
-                        <td>${book.publisher || '-'}</td>
-                        <td>${book.price || '-'}</td>
-                        <td style="color: ${statusColor}; font-weight: bold;">
-                            ${statusText}
-                        </td>
-                    `;
+                tr.innerHTML = `<td>${book.isbn}</td><td>${book.title}</td><td>${book.author||'-'}</td><td>${book.publisher||'-'}</td><td>${book.price||'-'}</td><td style="color:${book.status==='在库'?'#28a745':'#dc3545'}">${book.status}</td>`;
                 tbody.appendChild(tr);
             });
-        } catch (e) {
-            console.error("加载列表失败", e);
-        }
+        } catch (e) {}
     }
-
     loadBooks();
 </script>
 </body>
