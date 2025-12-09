@@ -3,7 +3,9 @@ package com.example.demo.controller;
 import com.example.demo.entity.Book;
 import com.example.demo.entity.PurchaseRequest;
 import com.example.demo.entity.Reader;
+import com.example.demo.entity.SystemConfig; // 确保 SystemConfig 实体被导入
 import com.example.demo.repository.BookRepository;
+import com.example.demo.repository.SystemConfigRepository; // ✅ 导入 Repository
 import com.example.demo.service.LibraryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +19,10 @@ public class LibraryController {
 
     @Autowired private LibraryService libraryService;
     @Autowired private BookRepository bookRepo;
+    @Autowired private SystemConfigRepository configRepo; // ✅ 注入 SystemConfigRepository
 
     // =====================================================================
-    //  ✅ 1. 统一登录认证接口 (新增/替换)
+    //  ✅ 1. 统一登录认证接口
     // =====================================================================
 
     @PostMapping("/login/unified")
@@ -39,8 +42,6 @@ public class LibraryController {
             return Map.of("success", false, "msg", "账号或密码错误");
         }
     }
-
-    // ⚠️ 原有的 /api/login/admin 和 /api/login/reader 已被移除
 
     // =====================================================================
     //  ✅ 2. 个人中心 (修改密码)
@@ -224,5 +225,17 @@ public class LibraryController {
         } catch (Exception e) {
             return Map.of("success", false, "msg", "操作失败");
         }
+    }
+
+    // =====================================================================
+    //  ✅ 8. 配置查询接口 (供前端使用)
+    // =====================================================================
+
+    // 此接口依赖于 SystemConfigRepository 的注入
+    @GetMapping("/config/value")
+    public String getConfigValue(@RequestParam String key) {
+        // 调用 configRepo，返回配置值字符串 (解决前端 404/数据加载问题)
+        // 确保 SystemConfig 实体已导入
+        return configRepo.findById(key).map(SystemConfig::getConfigValue).orElse(null);
     }
 }
