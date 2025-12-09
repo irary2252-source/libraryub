@@ -12,7 +12,11 @@ public interface BookRepository extends JpaRepository<Book, String> {
     @Query(value = "SELECT * FROM book", nativeQuery = true)
     List<Book> findAll();
 
-    // ✅ 新增：使用 SQL 进行模糊搜索 (书名包含关键字)
-    @Query(value = "SELECT * FROM book WHERE Title LIKE CONCAT('%', :keyword, '%')", nativeQuery = true)
+    // ✅ 升级：支持搜索 书名、作者、分类、ISBN
+    @Query(value = "SELECT * FROM book WHERE " +
+            "Title LIKE CONCAT('%', :keyword, '%') OR " +
+            "Author LIKE CONCAT('%', :keyword, '%') OR " +
+            "Category LIKE CONCAT('%', :keyword, '%') OR " +
+            "BookID LIKE CONCAT('%', :keyword, '%')", nativeQuery = true)
     List<Book> searchByTitle(@Param("keyword") String keyword);
 }

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.Book;
+import com.example.demo.entity.PurchaseRequest;
 import com.example.demo.entity.Reader;
 import com.example.demo.repository.BookRepository;
 import com.example.demo.service.LibraryService;
@@ -17,7 +18,9 @@ public class LibraryController {
     @Autowired private LibraryService libraryService;
     @Autowired private BookRepository bookRepo;
 
-    // --- ✅ 1. 登录接口 ---
+    // =====================================================================
+    //  ✅ 1. 登录认证接口
+    // =====================================================================
 
     @PostMapping("/login/admin")
     public Map<String, Object> loginAdmin(@RequestBody Map<String, String> payload) {
@@ -37,7 +40,41 @@ public class LibraryController {
         return Map.of("success", false, "msg", "卡号或密码错误");
     }
 
-    // --- ✅ 2. 图书管理接口 ---
+    // =====================================================================
+    //  ✅ 2. 个人中心 (修改密码)
+    // =====================================================================
+
+    @PostMapping("/reader/password")
+    public Map<String, Object> updateReaderPassword(@RequestBody Map<String, String> payload) {
+        try {
+            String msg = libraryService.updateReaderPassword(
+                    payload.get("cardId"),
+                    payload.get("oldPass"),
+                    payload.get("newPass")
+            );
+            return Map.of("success", true, "msg", msg);
+        } catch (Exception e) {
+            return Map.of("success", false, "msg", e.getMessage());
+        }
+    }
+
+    @PostMapping("/admin/password")
+    public Map<String, Object> updateAdminPassword(@RequestBody Map<String, String> payload) {
+        try {
+            String msg = libraryService.updateAdminPassword(
+                    payload.get("username"),
+                    payload.get("oldPass"),
+                    payload.get("newPass")
+            );
+            return Map.of("success", true, "msg", msg);
+        } catch (Exception e) {
+            return Map.of("success", false, "msg", e.getMessage());
+        }
+    }
+
+    // =====================================================================
+    //  ✅ 3. 图书管理接口 (查询、入库)
+    // =====================================================================
 
     @GetMapping("/books")
     public List<Book> getAllBooks() {
@@ -46,16 +83,20 @@ public class LibraryController {
 
     @GetMapping("/books/search")
     public List<Book> searchBooks(@RequestParam String keyword) {
+        // 调用 Repository 中升级后的模糊搜索 (支持书名、作者、分类、ISBN)
         return bookRepo.searchByTitle(keyword);
     }
 
     @PostMapping("/book")
     public Book addBook(@RequestBody Book book) {
         if (book.getStatus() == null) book.setStatus("在库");
+        if (book.getCategory() == null) book.setCategory("其他"); // 防止分类为空
         return bookRepo.save(book);
     }
 
-    // --- ✅ 3. 读者管理接口 ---
+    // =====================================================================
+    //  ✅ 4. 读者管理接口 (注册、注销)
+    // =====================================================================
 
     @PostMapping("/reader")
     public Object addReader(@RequestBody Map<String, Object> payload) {
@@ -63,7 +104,6 @@ public class LibraryController {
             Reader reader = new Reader();
             reader.setCardId((String) payload.get("cardId"));
             reader.setName((String) payload.get("name"));
-            // 接收密码
             reader.setPassword((String) payload.get("password"));
             reader.setSex((String) payload.get("sex"));
             reader.setType((String) payload.get("type"));
@@ -89,13 +129,17 @@ public class LibraryController {
         }
     }
 
-    // --- ✅ 4. 业务办理接口 ---
+    // =====================================================================
+    //  ✅ 5. 核心业务办理 (借书、还书、配置)
+    // =====================================================================
 
     @PostMapping("/borrow")
     public String borrow(@RequestBody Map<String, String> request) {
+        // 借书逻辑是通用的
         return libraryService.borrowBook(request.get("cardId"), request.get("isbn"));
     }
 
+    // 管理员还书 (按 ISBN)
     @PostMapping("/return")
     public String returnBook(@RequestBody Map<String, String> request) {
         return libraryService.returnBook(request.get("isbn"));
@@ -111,5 +155,77 @@ public class LibraryController {
         }
     }
 
+    // =====================================================================
+    //  ✅ 6. 读者自助功能 (我的借阅、罚款、自助还书)
+    // =====================================================================
 
+    @GetMapping("/reader/borrowings")
+    public List<Map<String, Object>> getReaderBorrowings(@RequestParam String cardId) {
+        return libraryService.getReaderBorrowings(cardId);
+    }
+
+    @GetMapping("/reader/fines")
+    public List<Map<String, Object>> getReaderFines(@RequestParam String cardId) {
+        return libraryService.getReaderFines(cardId);
+    }
+
+    // 读者还书 (按 BorrowID)
+    @PostMapping("/reader/return")
+    public Map<String, Object> readerReturn(@RequestBody Map<String, Long> payload) {
+        try {
+            Long borrowId = payload.get("borrowId");
+            if (borrowId == null) throw new RuntimeException("参数缺失");
+
+            String msg = libraryService.returnBookById(borrowId);
+            boolean isSuccess = msg.contains("成功") || msg.contains("逾期");
+
+            return Map.of("success", isSuccess, "msg", msg);
+        } catch (Exception e) {
+            return Map.of("success", false, "msg", "系统错误: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/reader/pay")
+    public Map<String, Object> payFine(@RequestBody Map<String, Long> payload) {
+        try {
+            Long borrowId = payload.get("borrowId");
+            String msg = libraryService.payFine(borrowId);
+            return Map.of("success", true, "msg", msg);
+        } catch (Exception e) {
+            return Map.of("success", false, "msg", "缴费失败");
+        }
+    }
+
+    // =====================================================================
+    //  ✅ 7. 图书荐购功能 API
+    // =====================================================================
+
+    @PostMapping("/recommend/add")
+    public Map<String, Object> addRecommend(@RequestBody PurchaseRequest req) {
+        try {
+            String msg = libraryService.addRecommendation(req);
+            // 只要消息里包含"成功"，就认为是操作成功
+            boolean isSuccess = msg.contains("成功");
+            return Map.of("success", isSuccess, "msg", msg);
+        } catch (Exception e) {
+            return Map.of("success", false, "msg", "系统错误");
+        }
+    }
+
+    @GetMapping("/recommend/list")
+    public List<PurchaseRequest> getRecommendList(@RequestParam(required = false) String readerId) {
+        return libraryService.getRecommendations(readerId);
+    }
+
+    @PostMapping("/recommend/handle")
+    public Map<String, Object> handleRecommend(@RequestBody Map<String, Object> payload) {
+        try {
+            Integer id = Integer.parseInt(payload.get("id").toString());
+            boolean approved = Boolean.parseBoolean(payload.get("approved").toString());
+            String msg = libraryService.handleRecommendation(id, approved);
+            return Map.of("success", true, "msg", msg);
+        } catch (Exception e) {
+            return Map.of("success", false, "msg", "操作失败");
+        }
+    }
 }

@@ -8,13 +8,14 @@ import java.util.List;
 
 public interface BorrowRepository extends JpaRepository<Borrow, Long> {
 
-    // ✅ 修改：使用 SQL 查询某人未还的书
-    // 对应数据库字段: CardID, ReturnTime
+    // (原有方法保持不变...)
     @Query(value = "SELECT * FROM borrow WHERE CardID = :cardId AND ReturnTime IS NULL", nativeQuery = true)
     List<Borrow> findByCardIdAndReturnTimeIsNull(@Param("cardId") String cardId);
 
-    // ✅ 修改：使用 SQL 查询某本书当前的借阅记录
-    // 对应数据库字段: BookID, ReturnTime
     @Query(value = "SELECT * FROM borrow WHERE BookID = :isbn AND ReturnTime IS NULL", nativeQuery = true)
     Borrow findByIsbnAndReturnTimeIsNull(@Param("isbn") String isbn);
+
+    // ✅ 新增：查询某人未缴纳罚款的记录 (已还书但 IsPaid=0)
+    @Query(value = "SELECT * FROM borrow WHERE CardID = :cardId AND ReturnTime IS NOT NULL AND IsPaid = 0", nativeQuery = true)
+    List<Borrow> findUnpaidFines(@Param("cardId") String cardId);
 }

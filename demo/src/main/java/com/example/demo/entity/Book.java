@@ -7,11 +7,14 @@ import java.math.BigDecimal;
 @Table(name = "book")
 public class Book {
     @Id
-    @Column(name = "BookID") // 对应数据库 BookID
+    @Column(name = "BookID")
     private String isbn;
 
     @Column(name = "Title")
     private String title;
+
+    @Column(name = "Category") // ✅ 新增分类字段
+    private String category;
 
     @Column(name = "Author")
     private String author;
@@ -25,7 +28,6 @@ public class Book {
     @Column(name = "Summary")
     private String summary;
 
-    // ✅ 修正：类型为 String，默认值为 "在库"
     @Column(name = "Status")
     private String status = "在库";
 
@@ -35,6 +37,10 @@ public class Book {
 
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
+
+    // ✅ 新增 Getter/Setter
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public String getAuthor() { return author; }
     public void setAuthor(String author) { this.author = author; }
@@ -48,7 +54,6 @@ public class Book {
     public String getSummary() { return summary; }
     public void setSummary(String summary) { this.summary = summary; }
 
-    // ✅ 修正 Getter/Setter 类型
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 }
